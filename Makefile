@@ -2,7 +2,7 @@
 
 FLAGS=
 
-all: libgl.dtm libglut.dtm libfreeglut.dtm 
+all: libgl.dtm libglut.dtm libfreeglut.dtm
 
 libgl.dtm: src/gl.dt
   dalec -c src/gl.dt $(FLAGS) -Igl
@@ -38,15 +38,17 @@ src/freeglut.dt:
   c2ffi /usr/include/GL/freeglut.h | ./dale-autowrap.pl freeglut_ext >> src/freeglut.dt
   cat /usr/include/GL/freeglut_ext.h | ./define-dale.pl GLUT_ >> src/freeglut.dt
 
-test: test/test.dt
-  dalec -lGL -lglut test/test.dt -o test
+test/test: test/test.dt libgl.dtm libglut.dtm
+  dalec -lGL -lglut test/test.dt -o test/test
 
 test/test.dt:
   true
 
-.PHONY: all clean
+.PHONY: all clean test
 
+test: test/test
+  test/test
 
 clean:
-  rm -f game && rm -f *.so && rm -f *.bc && rm -f *.dtm && rm -f src/*.o src/*.dt
+  rm -f game -f *.so *.bc *.dtm  src/*.o src/*.dt test/test
 
