@@ -2,6 +2,10 @@ This is just a wrapper around opengl.
 Files are automatically generated from opengl header files using c2ffi.
 Some types may still be incorrect and you have to cast them yourself to use specific functions.
 OpenGL typedefs are not included in file, and just replaced by it's definitions.
+Everything is placed in namespaces (gl-functions in gl, glut-functions in glut)
+Prefixes of constants are dropped, names are converted to lowercase, `_` are replaced with `-`
+
+Usage:
 
 Compile all libs:
 make
@@ -13,7 +17,7 @@ Run test progam:
 make test
 
 TODO:
-addiing namespaces
 don't use const for all parameters
 add function pointer signatures
+remove prefixes for functions
 
