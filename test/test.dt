@@ -1,0 +1,30 @@
+(import gl)
+(import glut)
+(import macros)
+
+(def render (fn intern void (void)
+  (glClear GL_COLOR_BUFFER_BIT)
+  (glBegin GL_LINE_LOOP);
+    (glVertex3f -0.8 -0.8 0.0)
+    (glVertex3f -0.8 0.8 0.0)
+    (glVertex3f 0.8 -0.8 0.0)
+    (glVertex3f 0.8 0.8 0.0)
+  (glEnd)
+  (glFlush)
+  (return)))
+
+(using-namespace std.macros
+(def make-const (macro intern (expr)
+  (let ((type \ (type-of mc expr false)))
+    (qq cast (uq expr) (const (uq type))))))
+)
+(def main (fn extern-c int ((argc int) (argv (p (p char))))
+  (glutInit (# argc) argv)
+  (glutInitDisplayMode (| GLUT_DEPTH (| GLUT_SINGLE GLUT_RGBA)))
+  (glutInitWindowPosition 100 100)
+  (glutInitWindowSize 500 500)
+  (glutCreateWindow "My First openGL Program")
+  (glutDisplayFunc (make-const (# render)))
+  (glutMainLoop)
+  (return 0)))
+

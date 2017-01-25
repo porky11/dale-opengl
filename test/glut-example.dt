@@ -1,0 +1,23 @@
+(import wassc)
+(import gl)
+
+(def render (fn intern void (void)
+  (glClear GL_COLOR_BUFFER_BIT)
+  (glBegin GL_LINE_LOOP);
+    (glVertex3f -0.8 -0.8 0.0)
+    (glVertex3f  0.8 -0.8 0.0)
+    (glVertex3f  0.8  0.8 0.0)
+    (glVertex3f -0.8  0.8 0.0)
+  (glEnd)
+  (glFlush)
+  (return)))
+
+(def main (fn extern-c int ((argc int) (argv (p (p char))))
+  (glutInit (# argc) argv)
+  (glutInitDisplayMode (| GLUT_DEPTH (| GLUT_SINGLE GLUT_RGBA)))
+  (glutInitWindowPosition 100 100)
+  (glutInitWindowSize 500 500)
+  (glutCreateWindow "My First openGL Program")
+  (glutDisplayFunc (# render))
+  (glutMainLoop)
+  (return 0)))

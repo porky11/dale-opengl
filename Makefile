@@ -16,28 +16,33 @@ libfreeglut.dtm: src/freeglut.dt
 #gl
 src/gl.dt:
   echo '(module gl)' > src/gl.dt
-  c2ffi /usr/include/GL/gl.h | ./dale-autowrap.pl gl >> src/gl.dt
-  c2ffi /usr/include/GL/gl.h | ./dale-autowrap.pl glext >> src/gl.dt
-  ./define-dale.pl /usr/include/GL/gl.h >> src/gl.dt
+  c2ffi /usr/include/GL/gl.h | ./dale-autowrap.pl gl namespaces=gl >> src/gl.dt
+  c2ffi /usr/include/GL/gl.h | ./dale-autowrap.pl glext namespaces=gl >> src/gl.dt
+  cat /usr/include/GL/gl.h | ./define-dale.pl GL_ >> src/gl.dt
 
 #glu
 #TODO
 
-#glut/freeglut
-src/glut.dt: libgl.dtm
+src/glut.dt:
   echo '(module glut)' > src/glut.dt
   echo '(import gl)' >> src/glut.dt
 #  echo '(import "glu")' >> src/glut.dt
   c2ffi /usr/include/GL/freeglut.h | ./dale-autowrap.pl freeglut_std >> src/glut.dt
-  ./define-dale.pl /usr/include/GL/freeglut_std.h >> src/glut.dt
+  cat /usr/include/GL/freeglut_std.h | ./define-dale.pl GLUT_ >> src/glut.dt
 
-src/freeglut.dt: libglut.dtm
+src/freeglut.dt:
   echo '(module freeglut)' > src/freeglut.dt
   echo '(import gl)' >> src/freeglut.dt
 #  echo '(import "glu")' >> src/glut.dt
   echo '(import glut)' >> src/freeglut.dt
   c2ffi /usr/include/GL/freeglut.h | ./dale-autowrap.pl freeglut_ext >> src/freeglut.dt
+  cat /usr/include/GL/freeglut_ext.h | ./define-dale.pl GLUT_ >> src/freeglut.dt
 
+test: test/test.dt
+  dalec -lGL -lglut test/test.dt -o test
+
+test/test.dt:
+  true
 
 .PHONY: all clean
 

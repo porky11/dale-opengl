@@ -2,7 +2,10 @@
 
 use warnings;
 use strict;
+
 use File::Basename;
+use Getopt::Long;
+
 use JSON::XS qw(decode_json);
 
 my %TYPE_MAP = (
@@ -26,7 +29,7 @@ my %TYPE_MAP = (
     'int64_t'            => 'int64',
 );
 
-sub type_to_string
+sub type_to_string_var
 {
     my ($type, $imports) = @_;
     our $in_function;
@@ -34,7 +37,7 @@ sub type_to_string
     if ($tag =~ /^:/) {
         $tag =~ s/^://;
     }
-
+    
     if ($tag eq 'pointer') {
         return "(p ".(type_to_string($type->{'type'}, $imports)).")";
     }
@@ -71,6 +74,18 @@ sub type_to_string
     }
 
     return $tag;
+}
+
+sub type_to_string
+{
+    my ($type, $imports) = @_;
+    my $type_string = type_to_string_var($type, $imports);
+    if($type_string eq 'void') {
+    #if(1) {
+      return $type_string;
+    } else {
+      return '(const ' . $type_string . ')';
+    }
 }
 
 sub type_to_flat_string
@@ -170,11 +185,9 @@ sub process_typedef
     my ($data, $imports) = @_;
     
     my $type = type_to_string($data->{'type'}, $imports);
-    if (not ($type eq 'void')) {
-      sprintf("(def %s (struct extern ((value %s))))",
-              $data->{'name'},
-              $type);
-    }
+    $TYPE_MAP{$data->{'name'}}=$type;
+
+    ''
 }
 
 sub process_union
@@ -210,7 +223,10 @@ my %PROCESS_MAP = (
 
 sub main
 {
+    my ($namespaces) = @_;
+
     our $in_function = 0;
+
     my %imports;
     my @bindings;
 
@@ -221,15 +237,17 @@ sub main
         }
         $entry =~ s/,\s*$//;
         my $data = decode_json($entry);
+        my $tag = $data->{'tag'};
         if($#ARGV>=0) {
           my $path = $data->{'location'};
           my $name = fileparse($path,qr/\.[^.]*/);  
           my $arg = $ARGV[0];
           if(not ($name eq $arg)) {
-            next;
+            if(not $tag eq 'typedef') {
+              next;
+            }
           }
         }
-        my $tag = $data->{'tag'};
         if ($PROCESS_MAP{$tag}) {
             push @bindings, $PROCESS_MAP{$tag}->($data, \%imports);
         } else {
@@ -244,11 +262,43 @@ sub main
         }
         print "\n";
     }
-    for my $binding (@bindings) {
+
+    my %by_namespace =
+        map { $_ => [] }
+            @{$namespaces};
+    my @no_namespace;
+    BINDING: for my $binding (@bindings) {
+        my ($name) = ($binding =~ /^\(.*? (.*?) /);
+        for my $namespace (@{$namespaces}) {
+            if ($name =~ /^${namespace}/) {
+                $name =~ s/^${namespace}//;
+                $binding =~ s/ (.*?) / $name /;
+                push @{$by_namespace{$namespace}}, $binding;
+                next BINDING;
+            }
+        }
+        push @no_namespace, $binding;
+    }
+
+    for my $namespace (@{$namespaces}) {
+        my @ns_bindings = @{$by_namespace{$namespace}};
+        if (@ns_bindings) {
+            print "(namespace $namespace \n";
+            for my $binding (@bindings) {
+                print "$binding\n";
+            }
+            print ")\n";
+        }
+    }
+
+    for my $binding (@no_namespace) {
         print "$binding\n";
     }
 }
 
-main();
+my @namespaces;
+GetOptions("namespace=s", \@namespaces);
+
+main(\@namespaces);
 
 1;
