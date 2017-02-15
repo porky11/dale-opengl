@@ -13,36 +13,13 @@ libglut.dtm: src/glut.dt
 libfreeglut.dtm: src/freeglut.dt
   dalec -c src/freeglut.dt $(FLAGS)
 
-#gl
-src/gl.dt:
-  echo '(module gl)' > src/gl.dt
-  echo '(namespace gl' >> src/gl.dt
-  c2ffi /usr/include/GL/gl.h | ./dale-autowrap.pl gl namespaces=gl >> src/gl.dt
-  c2ffi /usr/include/GL/gl.h | ./dale-autowrap.pl glext namespaces=gl >> src/gl.dt
-  cat /usr/include/GL/gl.h | ./define-dale.pl GL_ >> src/gl.dt
-  echo ')' >> src/gl.dt
+sh/%.sh:
+  true
 
-#glu
-#TODO
-
-src/glut.dt:
-  echo '(module glut)' > src/glut.dt
-  echo '(import gl)' >> src/glut.dt
-  echo '(namespace glut' >> src/glut.dt
-#  echo '(import "glu")' >> src/glut.dt
-  c2ffi /usr/include/GL/freeglut.h | ./dale-autowrap.pl freeglut_std >> src/glut.dt
-  cat /usr/include/GL/freeglut_std.h | ./define-dale.pl GLUT_ >> src/glut.dt
-  echo ')' >> src/glut.dt
+src/%.dt: sh/%.sh dale-autowrap-opengl
+  $<
 
 src/freeglut.dt:
-  echo '(module freeglut)' > src/freeglut.dt
-  echo '(import gl)' >> src/freeglut.dt
-#  echo '(import "glu")' >> src/glut.dt
-  echo '(import glut)' >> src/freeglut.dt
-  echo '(namespace glut' >> src/freeglut.dt
-  c2ffi /usr/include/GL/freeglut.h | ./dale-autowrap.pl freeglut_ext >> src/freeglut.dt
-  cat /usr/include/GL/freeglut_ext.h | ./define-dale.pl GLUT_ >> src/freeglut.dt
-  echo ')' >> src/freeglut.dt
 
 test/test: test/test.dt libgl.dtm libglut.dtm
   dalec -lGL -lglut test/test.dt -o test/test

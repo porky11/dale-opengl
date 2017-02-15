@@ -9,16 +9,25 @@ use Getopt::Long;
 use JSON::XS qw(decode_json);
 
 my %TYPE_MAP = (
-    'unsigned-int'       => 'uint',
+    'char'               => '(const char)',
+    'signed-char'        => '(const char)',
     'unsigned-char'      => 'uint8',
-    'signed-char'        => 'int8',
+    'int'                => 'int',
+    'signed-int'         => 'int',
+    'unsigned-int'       => 'uint',
     'short'              => '(short-type)',
+    'signed-short'       => '(short-type)',
     'unsigned-short'     => '(ushort-type)',
     'long'               => '(long-type)',
+    'signed-long'        => '(long-type)',
     'unsigned-long'      => '(ulong-type)',
     'long-long'          => '(long-long-type)',
+    'signed-long-long'   => '(long-long-type)',
     'unsigned-long-long' => '(ulong-long-type)',
+    'float'              => 'float',
+    'double'             => 'double',
     'ptrdiff_t'          => 'ptrdiff',
+    'size_t'             => 'size',
     'uint8_t'            => 'uint8',
     'uint16_t'           => 'uint16',
     'uint32_t'           => 'uint32',
@@ -80,12 +89,7 @@ sub type_to_string
 {
     my ($type, $imports) = @_;
     my $type_string = type_to_string_var($type, $imports);
-    if($type_string eq 'void') {
-    #if(1) {
-      return $type_string;
-    } else {
-      return '(const ' . $type_string . ')';
-    }
+    return $type_string;
 }
 
 sub type_to_flat_string
@@ -187,7 +191,7 @@ sub process_typedef
     my $type = type_to_string($data->{'type'}, $imports);
     $TYPE_MAP{$data->{'name'}}=$type;
 
-    ''
+    return;
 }
 
 sub process_union
