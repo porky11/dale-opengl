@@ -1,0 +1,7 @@
+(module freeglut)
+
+(namespace glut
+  (include "freeglut.dt")
+)
+
+

@@ -1,0 +1,7 @@
+(module glut)
+
+(namespace glut
+  (include "glut.dt")
+)
+
+
